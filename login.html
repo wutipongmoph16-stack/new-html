@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+  <head>
+    <script charset="utf-8" src="https://static.line-cdn.net"></script>
+  </head>
+  <body onload="initializeLiff()">
+    <h2>Registering User...</h2>
+    <p id="status">Please wait.</p>
+
+    <script>
+      function initializeLiff() {
+        liff
+          .init({
+            liffId: "2008916930-hH84U2jI", // Replace with your LIFF ID
+            withLoginOnExternalBrowser: true,
+          })
+          .then(() => {
+            if (liff.isLoggedIn()) {
+              registerUser();
+            } else {
+              // Redirect to login page if not logged in in an external browser
+              liff.login();
+            }
+          })
+          .catch((err) => {
+            document.getElementById("status").textContent =
+              "LIFF initialization failed: " + err;
+          });
+      }
+
+      function registerUser() {
+        liff
+          .getProfile()
+          .then((profile) => {
+            const userId = profile.userId;
+            const displayName = profile.displayName;
+            // Example of getting email (requires email scope in LIFF settings)
+            const email = liff.getDecodedIDToken().email;
+
+            const userData = {
+              userId: userId,
+              displayName: displayName,
+              email: email,
+            };
+
+            // Post data to Google Apps Script Web App URL
+            fetch(
+              "https://cript.google.com/macros/s/AKfycbyU6HCaKTuSNWO3LQ76k3YSXh_Qe1ljaS71SHjrwn9b9Lq4rsynhmp9woA4RfbUqRrr6A/exec",
+              {
+                // Replace with your deployed Web App URL
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(userData),
+              },
+            )
+              .then((response) => response.text())
+              .then((data) => {
+                document.getElementById("status").textContent =
+                  "Registration successful: " + data;
+                liff.closeWindow(); // Optional: Close the LIFF window after success
+              })
+              .catch((error) => {
+                document.getElementById("status").textContent =
+                  "Error sending data: " + error;
+              });
+          })
+          .catch((err) => {
+            document.getElementById("status").textContent =
+              "Failed to get profile: " + err;
+          });
+      }
+    </script>
+  </body>
+</html>
