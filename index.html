@@ -109,7 +109,7 @@
         "https://script.google.com/macros/s/AKfycbzNCJIwFtptUa4Fo6NT5u4Dxpc2RtB1UTzGCs-GJXeOzilc_l3IMtzWRdgCJ-63mv0Acw/exec"; // นำ URL ที่คัดลอกไว้มาใส่ตรงนี้
 
       let currentUserId = "";
-      let allEmployees = []; // ตัวแปรเก็บรายชื่อทั้งหมด
+      let allEmployees = [];
 
       async function initializeLiff() {
         try {
@@ -191,7 +191,6 @@
         }
       }
 
-      // ฟังก์ชันกรองรายชื่อตามแผนกที่เลือก
       function filterEmployees() {
         const selectedDept = document.getElementById("departmentSelect").value;
         const empSelect = document.getElementById("employeeSelect");
@@ -205,7 +204,6 @@
           return;
         }
 
-        // กรองเฉพาะคนที่มี department ตรงกับที่เลือก
         const filteredEmps = allEmployees.filter(
           (emp) => emp.department === selectedDept,
         );
@@ -244,8 +242,10 @@
           const result = await response.json();
 
           if (result.status === "success") {
-            alert("บันทึกข้อมูลสำเร็จ! คุณสามารถปิดหน้านี้ได้ทันที");
-            liff.closeWindow(); // ปิดหน้าต่าง LIFF อัตโนมัติเมื่อเสร็จสิ้น
+            // ถ้ายืนยันสำเร็จ ให้รีโหลดข้อมูลใหม่เพื่อแสดงหน้าจอ "ยืนยันแล้ว"
+            document.getElementById("loading").innerText =
+              "บันทึกสำเร็จ กำลังรีเฟรช...";
+            fetchEmployeeData();
           } else {
             alert("เกิดข้อผิดพลาด: " + result.message);
             resetButton();
