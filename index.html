@@ -136,37 +136,56 @@
 
       async function fetchEmployeeData() {
         try {
-          const response = await fetch(GAS_WEBAPP_URL);
-          allEmployees = await response.json();
+          // แนบ userId ไปใน URL เพื่อให้ Backend ตรวจสอบ
+          const response = await fetch(
+            `${GAS_WEBAPP_URL}?userId=${currentUserId}`,
+          );
+          const result = await response.json();
 
+          const contentSection = document.getElementById("contentSection");
+
+          // กรณีที่ 1: เคยยืนยันตัวตนไปแล้ว
+          if (result.isRegistered) {
+            contentSection.innerHTML = `
+                        <div class="success-box">
+                            <h3 style="margin: 0 0 10px 0;">✅ คุณได้ยืนยันตัวตนแล้ว</h3>
+                            <p style="margin: 5px 0;"><strong>ชื่อ:</strong> ${result.name}</p>
+                            <p style="margin: 5px 0;"><strong>กลุ่มงาน:</strong> ${result.department}</p>
+                            <button class="btn-close" onclick="liff.closeWindow()">ปิดหน้าต่าง</button>
+                        </div>
+                    `;
+            contentSection.style.display = "block";
+            return; // จบการทำงาน ไม่ต้องโหลดฟอร์มต่อ
+          }
+
+          // กรณีที่ 2: ยังไม่เคยยืนยันตัวตน โหลดข้อมูลลง Dropdown
+          allEmployees = result.employees;
           const deptSelect = document.getElementById("departmentSelect");
 
           if (allEmployees.length === 0) {
             deptSelect.innerHTML =
               '<option value="">ไม่มีรายชื่อที่รอการยืนยัน</option>';
             deptSelect.disabled = true;
-            return;
+          } else {
+            const departments = [
+              ...new Set(allEmployees.map((emp) => emp.department)),
+            ];
+            deptSelect.innerHTML =
+              '<option value="">-- เลือกกลุ่มงาน/แผนก --</option>';
+            departments.forEach((dept) => {
+              let option = document.createElement("option");
+              option.value = dept;
+              option.text = dept;
+              deptSelect.add(option);
+            });
           }
 
-          // สกัดรายชื่อแผนกที่ไม่ซ้ำกัน (Unique Departments)
-          const departments = [
-            ...new Set(allEmployees.map((emp) => emp.department)),
-          ];
-
-          deptSelect.innerHTML =
-            '<option value="">-- เลือกกลุ่มงาน/แผนก --</option>';
-          departments.forEach((dept) => {
-            let option = document.createElement("option");
-            option.value = dept;
-            option.text = dept;
-            deptSelect.add(option);
-          });
-
-          document.getElementById("formSection").style.display = "block";
+          contentSection.style.display = "block";
         } catch (err) {
           console.error("Fetch error", err);
           document.getElementById("departmentSelect").innerHTML =
             '<option value="">โหลดข้อมูลไม่สำเร็จ</option>';
+          document.getElementById("contentSection").style.display = "block";
         }
       }
 
