@@ -75,21 +75,23 @@
       <img id="pictureUrl" src="" alt="Profile Picture" style="display: none" />
       <h3 id="displayName">กำลังตรวจสอบข้อมูล...</h3>
 
-      <div id="formSection" style="display: none; text-align: left">
-        <label for="departmentSelect">1. เลือกกลุ่มงาน/แผนก</label>
-        <select id="departmentSelect" onchange="filterEmployees()">
-          <option value="">-- กำลังโหลดแผนก... --</option>
-        </select>
+      <div id="contentSection" style="display: none; text-align: left">
+        <div id="formWrapper">
+          <label for="departmentSelect">1. เลือกกลุ่มงาน/แผนก</label>
+          <select id="departmentSelect" onchange="filterEmployees()">
+            <option value="">-- กำลังโหลดข้อมูล... --</option>
+          </select>
 
-        <label for="employeeSelect">2. เลือกชื่อ-นามสกุล</label>
-        <select id="employeeSelect" disabled>
-          <option value="">-- กรุณาเลือกแผนกก่อน --</option>
-        </select>
+          <label for="employeeSelect">2. เลือกชื่อ-นามสกุล</label>
+          <select id="employeeSelect" disabled>
+            <option value="">-- กรุณาเลือกแผนกก่อน --</option>
+          </select>
 
-        <button id="submitBtn" onclick="confirmIdentity()" disabled>
-          ยืนยันตัวตน
-        </button>
-        <p id="loading" style="text-align: center">กำลังบันทึกข้อมูล...</p>
+          <button id="submitBtn" onclick="confirmIdentity()" disabled>
+            ยืนยันตัวตน
+          </button>
+          <p id="loading" style="text-align: center">กำลังบันทึกข้อมูล...</p>
+        </div>
       </div>
     </div>
 
@@ -122,7 +124,7 @@
             document.getElementById("displayName").innerText =
               "สวัสดีคุณ " + profile.displayName;
 
-            // เมื่อล็อกอินสำเร็จ ให้ดึงรายชื่อจากฐานข้อมูลมาแสดงใน Dropdown
+            // เรียกเช็คข้อมูลและดึงรายชื่อ
             fetchEmployeeData();
           } else {
             liff.login();
