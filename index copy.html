@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LIFF Auto Login</title>
+    <script
+      charset="utf-8"
+      src="https://static.line-scdn.net/liff/edge/2/sdk.js"
+    ></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        text-align: center;
+        padding: 50px;
+      }
+      #profile {
+        display: none;
+        margin-top: 20px;
+      }
+      img {
+        border-radius: 50%;
+        max-width: 150px;
+      }
+      #status {
+        margin-top: 15px;
+        font-weight: bold;
+      }
+      .footer {
+        margin-top: 40px;
+        font-size: 12px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+      <h2>กำลังตรวจสอบสิทธิ์...</h2>
+    </div>
+
+    <div id="profile">
+      <h2>ข้อมูลของคุณ</h2>
+      <img id="pictureUrl" src="" alt="Profile Picture" />
+      <h3 id="displayName"></h3>
+      <p id="userId"></p>
+      <p id="status"></p>
+    </div>
+
+    <div class="footer">
+      <p>สสจ.ลพบุรี | องค์กรโปร่งใส ตรวจสอบได้ ไร้สินบน</p>
+    </div>
+
+    <script>
+      const LIFF_ID = "2008916930-hH84U2jI"; // ใส่ LIFF ID
+      const GAS_WEBAPP_URL =
+        "https://script.google.com/macros/s/AKfycbzNCJIwFtptUa4Fo6NT5u4Dxpc2RtB1UTzGCs-GJXeOzilc_l3IMtzWRdgCJ-63mv0Acw/exec"; // นำ URL ที่คัดลอกไว้มาใส่ตรงนี้
+
+      async function initializeLiff() {
+        try {
+          await liff.init({ liffId: LIFF_ID });
+          if (liff.isLoggedIn()) {
+            showProfile();
+          } else {
+            liff.login();
+          }
+        } catch (err) {
+          console.error("LIFF Init failed", err);
+        }
+      }
+
+      async function showProfile() {
+        try {
+          const profile = await liff.getProfile();
+
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("profile").style.display = "block";
+
+          document.getElementById("pictureUrl").src = profile.pictureUrl;
+          document.getElementById("displayName").innerText =
+            profile.displayName;
+          document.getElementById("userId").innerText =
+            "UID: " + profile.userId;
+
+          // เมื่อดึงข้อมูลจาก LINE สำเร็จ ให้ส่งไปที่ Google Apps Script
+          sendDataToGAS(profile);
+        } catch (err) {
+          console.error("Error getting profile: ", err);
+        }
+      }
+
+      async function sendDataToGAS(profile) {
+        const statusElement = document.getElementById("status");
+        statusElement.innerText = "กำลังซิงค์ข้อมูลกับฐานข้อมูล...";
+        statusElement.style.color = "orange";
+
+        try {
+          const response = await fetch(GAS_WEBAPP_URL, {
+            method: "POST",
+            // ทริกเกอร์สำคัญ: ใช้ text/plain เพื่อกันเบราว์เซอร์ติดปัญหา CORS Preflight เมื่อเรียกข้ามโดเมน
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8",
+            },
+            body: JSON.stringify({
+              userId: profile.userId,
+              displayName: profile.displayName,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (result.status === "success") {
+            statusElement.innerText = result.message;
+            statusElement.style.color = "green";
+          } else {
+            statusElement.innerText = "ข้อผิดพลาด: " + result.message;
+            statusElement.style.color = "red";
+          }
+        } catch (error) {
+          console.error("Fetch error:", error);
+          statusElement.innerText = "เชื่อมต่อระบบฐานข้อมูลไม่สำเร็จ";
+          statusElement.style.color = "red";
+        }
+      }
+
+      window.onload = function () {
+        initializeLiff();
+      };
+    </script>
+  </body>
+</html>

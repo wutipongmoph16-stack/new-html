@@ -3,51 +3,95 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LIFF Auto Login</title>
+    <title>ยืนยันตัวตนบุคลากร</title>
     <script
       charset="utf-8"
       src="https://static.line-scdn.net/liff/edge/2/sdk.js"
     ></script>
     <style>
       body {
-        font-family: sans-serif;
+        font-family: "Sarabun", sans-serif;
         text-align: center;
-        padding: 50px;
+        padding: 20px;
+        background-color: #f4f7f6;
       }
-      #profile {
-        display: none;
-        margin-top: 20px;
+      .container {
+        max-width: 400px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
       img {
         border-radius: 50%;
-        max-width: 150px;
+        max-width: 100px;
+        margin-bottom: 15px;
       }
-      #status {
+      select {
+        width: 100%;
+        padding: 10px;
+        margin: 20px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: #00b900;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #loading {
+        display: none;
+        color: #0056b3;
         margin-top: 15px;
-        font-weight: bold;
       }
       .footer {
-        margin-top: 40px;
+        margin-top: 30px;
         font-size: 12px;
         color: #666;
+        line-height: 1.5;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+      }
+      .footer a {
+        color: #0056b3;
+        text-decoration: none;
       }
     </style>
   </head>
   <body>
-    <div id="loading">
-      <h2>กำลังตรวจสอบสิทธิ์...</h2>
-    </div>
+    <div class="container" id="mainContainer">
+      <h2>ระบบยืนยันตัวตน</h2>
+      <img id="pictureUrl" src="" alt="Profile Picture" style="display: none" />
+      <h3 id="displayName">กำลังตรวจสอบข้อมูล...</h3>
 
-    <div id="profile">
-      <h2>ข้อมูลของคุณ</h2>
-      <img id="pictureUrl" src="" alt="Profile Picture" />
-      <h3 id="displayName"></h3>
-      <p id="userId"></p>
-      <p id="status"></p>
+      <div id="formSection" style="display: none">
+        <p>กรุณาเลือกชื่อ-นามสกุลของคุณเพื่อยืนยันการผูกบัญชี</p>
+        <select id="employeeSelect">
+          <option value="">-- กำลังโหลดรายชื่อ... --</option>
+        </select>
+        <button id="submitBtn" onclick="confirmIdentity()">ยืนยันตัวตน</button>
+        <p id="loading">กำลังบันทึกข้อมูล...</p>
+      </div>
     </div>
 
     <div class="footer">
-      <p>สสจ.ลพบุรี | องค์กรโปร่งใส ตรวจสอบได้ ไร้สินบน</p>
+      <strong>สสจ.ลพบุรี</strong><br />
+      องค์กรโปร่งใส ตรวจสอบได้ ไร้สินบน<br />
+      โทรศัพท์: 036-689689 ต่อ 133<br />
+      อีเมล: riskcom.lbmoph@gmail.com<br />
+      เว็บไซต์:
+      <a href="http://wwwlbo.moph.go.th" target="_blank">wwwlbo.moph.go.th</a>
     </div>
 
     <script>
@@ -55,71 +99,102 @@
       const GAS_WEBAPP_URL =
         "https://script.google.com/macros/s/AKfycbzNCJIwFtptUa4Fo6NT5u4Dxpc2RtB1UTzGCs-GJXeOzilc_l3IMtzWRdgCJ-63mv0Acw/exec"; // นำ URL ที่คัดลอกไว้มาใส่ตรงนี้
 
+      let currentUserId = "";
+
       async function initializeLiff() {
         try {
           await liff.init({ liffId: LIFF_ID });
           if (liff.isLoggedIn()) {
-            showProfile();
+            const profile = await liff.getProfile();
+            currentUserId = profile.userId;
+
+            document.getElementById("pictureUrl").src = profile.pictureUrl;
+            document.getElementById("pictureUrl").style.display =
+              "inline-block";
+            document.getElementById("displayName").innerText =
+              "สวัสดีคุณ " + profile.displayName;
+
+            // เมื่อล็อกอินสำเร็จ ให้ดึงรายชื่อจากฐานข้อมูลมาแสดงใน Dropdown
+            fetchEmployeeList();
           } else {
             liff.login();
           }
         } catch (err) {
           console.error("LIFF Init failed", err);
-        }
-      }
-
-      async function showProfile() {
-        try {
-          const profile = await liff.getProfile();
-
-          document.getElementById("loading").style.display = "none";
-          document.getElementById("profile").style.display = "block";
-
-          document.getElementById("pictureUrl").src = profile.pictureUrl;
           document.getElementById("displayName").innerText =
-            profile.displayName;
-          document.getElementById("userId").innerText =
-            "UID: " + profile.userId;
-
-          // เมื่อดึงข้อมูลจาก LINE สำเร็จ ให้ส่งไปที่ Google Apps Script
-          sendDataToGAS(profile);
-        } catch (err) {
-          console.error("Error getting profile: ", err);
+            "เกิดข้อผิดพลาดในการเชื่อมต่อ LINE";
         }
       }
 
-      async function sendDataToGAS(profile) {
-        const statusElement = document.getElementById("status");
-        statusElement.innerText = "กำลังซิงค์ข้อมูลกับฐานข้อมูล...";
-        statusElement.style.color = "orange";
+      async function fetchEmployeeList() {
+        try {
+          const response = await fetch(GAS_WEBAPP_URL);
+          const employees = await response.json();
+
+          const selectElement = document.getElementById("employeeSelect");
+          selectElement.innerHTML =
+            '<option value="">-- เลือกชื่อของคุณ --</option>';
+
+          if (employees.length === 0) {
+            selectElement.innerHTML =
+              '<option value="">ไม่มีรายชื่อที่รอการยืนยัน</option>';
+            document.getElementById("submitBtn").disabled = true;
+          } else {
+            employees.forEach((emp) => {
+              let option = document.createElement("option");
+              option.value = emp.id;
+              option.text = emp.name;
+              selectElement.add(option);
+            });
+          }
+
+          document.getElementById("formSection").style.display = "block";
+        } catch (err) {
+          console.error("Fetch error", err);
+          document.getElementById("employeeSelect").innerHTML =
+            '<option value="">โหลดข้อมูลไม่สำเร็จ</option>';
+        }
+      }
+
+      async function confirmIdentity() {
+        const selectedEmpId = document.getElementById("employeeSelect").value;
+        if (!selectedEmpId) {
+          alert("กรุณาเลือกชื่อของคุณ");
+          return;
+        }
+
+        document.getElementById("submitBtn").style.display = "none";
+        document.getElementById("loading").style.display = "block";
 
         try {
           const response = await fetch(GAS_WEBAPP_URL, {
             method: "POST",
-            // ทริกเกอร์สำคัญ: ใช้ text/plain เพื่อกันเบราว์เซอร์ติดปัญหา CORS Preflight เมื่อเรียกข้ามโดเมน
-            headers: {
-              "Content-Type": "text/plain;charset=utf-8",
-            },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
-              userId: profile.userId,
-              displayName: profile.displayName,
+              userId: currentUserId,
+              empId: selectedEmpId,
             }),
           });
 
           const result = await response.json();
 
           if (result.status === "success") {
-            statusElement.innerText = result.message;
-            statusElement.style.color = "green";
+            alert("บันทึกข้อมูลสำเร็จ! คุณสามารถปิดหน้านี้ได้ทันที");
+            liff.closeWindow(); // ปิดหน้าต่าง LIFF อัตโนมัติเมื่อเสร็จสิ้น
           } else {
-            statusElement.innerText = "ข้อผิดพลาด: " + result.message;
-            statusElement.style.color = "red";
+            alert("เกิดข้อผิดพลาด: " + result.message);
+            resetButton();
           }
         } catch (error) {
-          console.error("Fetch error:", error);
-          statusElement.innerText = "เชื่อมต่อระบบฐานข้อมูลไม่สำเร็จ";
-          statusElement.style.color = "red";
+          console.error("Submit error:", error);
+          alert("ไม่สามารถเชื่อมต่อระบบฐานข้อมูลได้");
+          resetButton();
         }
+      }
+
+      function resetButton() {
+        document.getElementById("submitBtn").style.display = "block";
+        document.getElementById("loading").style.display = "none";
       }
 
       window.onload = function () {
