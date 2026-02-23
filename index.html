@@ -75,13 +75,21 @@
       <img id="pictureUrl" src="" alt="Profile Picture" style="display: none" />
       <h3 id="displayName">กำลังตรวจสอบข้อมูล...</h3>
 
-      <div id="formSection" style="display: none">
-        <p>กรุณาเลือกชื่อ-นามสกุลของคุณเพื่อยืนยันการผูกบัญชี</p>
-        <select id="employeeSelect">
-          <option value="">-- กำลังโหลดรายชื่อ... --</option>
+      <div id="formSection" style="display: none; text-align: left">
+        <label for="departmentSelect">1. เลือกกลุ่มงาน/แผนก</label>
+        <select id="departmentSelect" onchange="filterEmployees()">
+          <option value="">-- กำลังโหลดแผนก... --</option>
         </select>
-        <button id="submitBtn" onclick="confirmIdentity()">ยืนยันตัวตน</button>
-        <p id="loading">กำลังบันทึกข้อมูล...</p>
+
+        <label for="employeeSelect">2. เลือกชื่อ-นามสกุล</label>
+        <select id="employeeSelect" disabled>
+          <option value="">-- กรุณาเลือกแผนกก่อน --</option>
+        </select>
+
+        <button id="submitBtn" onclick="confirmIdentity()" disabled>
+          ยืนยันตัวตน
+        </button>
+        <p id="loading" style="text-align: center">กำลังบันทึกข้อมูล...</p>
       </div>
     </div>
 
@@ -91,7 +99,7 @@
       โทรศัพท์: 036-689689 ต่อ 133<br />
       อีเมล: riskcom.lbmoph@gmail.com<br />
       เว็บไซต์:
-      <a href="http://wwwlbo.moph.go.th" target="_blank">wwwlbo.moph.go.th</a>
+      <a href="https://wwwlbo.moph.go.th" target="_blank">wwwlbo.moph.go.th</a>
     </div>
 
     <script>
@@ -126,34 +134,70 @@
         }
       }
 
-      async function fetchEmployeeList() {
+      async function fetchEmployeeData() {
         try {
           const response = await fetch(GAS_WEBAPP_URL);
-          const employees = await response.json();
+          allEmployees = await response.json();
 
-          const selectElement = document.getElementById("employeeSelect");
-          selectElement.innerHTML =
-            '<option value="">-- เลือกชื่อของคุณ --</option>';
+          const deptSelect = document.getElementById("departmentSelect");
 
-          if (employees.length === 0) {
-            selectElement.innerHTML =
+          if (allEmployees.length === 0) {
+            deptSelect.innerHTML =
               '<option value="">ไม่มีรายชื่อที่รอการยืนยัน</option>';
-            document.getElementById("submitBtn").disabled = true;
-          } else {
-            employees.forEach((emp) => {
-              let option = document.createElement("option");
-              option.value = emp.id;
-              option.text = emp.name;
-              selectElement.add(option);
-            });
+            deptSelect.disabled = true;
+            return;
           }
+
+          // สกัดรายชื่อแผนกที่ไม่ซ้ำกัน (Unique Departments)
+          const departments = [
+            ...new Set(allEmployees.map((emp) => emp.department)),
+          ];
+
+          deptSelect.innerHTML =
+            '<option value="">-- เลือกกลุ่มงาน/แผนก --</option>';
+          departments.forEach((dept) => {
+            let option = document.createElement("option");
+            option.value = dept;
+            option.text = dept;
+            deptSelect.add(option);
+          });
 
           document.getElementById("formSection").style.display = "block";
         } catch (err) {
           console.error("Fetch error", err);
-          document.getElementById("employeeSelect").innerHTML =
+          document.getElementById("departmentSelect").innerHTML =
             '<option value="">โหลดข้อมูลไม่สำเร็จ</option>';
         }
+      }
+
+      // ฟังก์ชันกรองรายชื่อตามแผนกที่เลือก
+      function filterEmployees() {
+        const selectedDept = document.getElementById("departmentSelect").value;
+        const empSelect = document.getElementById("employeeSelect");
+        const submitBtn = document.getElementById("submitBtn");
+
+        empSelect.innerHTML = '<option value="">-- เลือกชื่อของคุณ --</option>';
+
+        if (!selectedDept) {
+          empSelect.disabled = true;
+          submitBtn.disabled = true;
+          return;
+        }
+
+        // กรองเฉพาะคนที่มี department ตรงกับที่เลือก
+        const filteredEmps = allEmployees.filter(
+          (emp) => emp.department === selectedDept,
+        );
+
+        filteredEmps.forEach((emp) => {
+          let option = document.createElement("option");
+          option.value = emp.id;
+          option.text = emp.name;
+          empSelect.add(option);
+        });
+
+        empSelect.disabled = false;
+        submitBtn.disabled = false;
       }
 
       async function confirmIdentity() {
