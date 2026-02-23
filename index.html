@@ -1,11 +1,89 @@
 <!doctype html>
-<html lang="en">
+<html lang="th">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>first web on githyb</title>
+    <title>LIFF Auto Login</title>
+    <script
+      charset="utf-8"
+      src="https://static.line-scdn.net/liff/edge/2/sdk.js"
+    ></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        text-align: center;
+        padding: 50px;
+      }
+      #profile {
+        display: none;
+        margin-top: 20px;
+      }
+      img {
+        border-radius: 50%;
+        max-width: 150px;
+      }
+    </style>
   </head>
   <body>
-    <h1>Hello world 222</h1>
+    <div id="loading">
+      <h2>กำลังเข้าสู่ระบบ...</h2>
+    </div>
+
+    <div id="profile">
+      <h2>ยินดีต้อนรับ</h2>
+      <img id="pictureUrl" src="" alt="Profile Picture" />
+      <h3 id="displayName"></h3>
+      <p id="userId"></p>
+    </div>
+
+    <script>
+      // แทนที่ด้วย LIFF ID ของคุณ
+      const LIFF_ID = "2008916930-hH84U2jI";
+
+      async function initializeLiff() {
+        try {
+          // 1. เริ่มต้นการทำงานของ LIFF
+          await liff.init({ liffId: LIFF_ID });
+
+          // 2. ตรวจสอบสถานะการล็อกอิน
+          if (liff.isLoggedIn()) {
+            // ถ้าล็อกอินแล้ว ให้ดึงข้อมูลโปรไฟล์มาแสดง
+            showProfile();
+          } else {
+            // ถ้ายังไม่ได้ล็อกอิน ให้บังคับ Redirect ไปหน้าล็อกอินของ LINE
+            liff.login();
+          }
+        } catch (err) {
+          console.error("LIFF Initialization failed", err);
+          document.getElementById("loading").innerHTML =
+            "<p style='color:red;'>เกิดข้อผิดพลาดในการเชื่อมต่อระบบ</p>";
+        }
+      }
+
+      async function showProfile() {
+        try {
+          const profile = await liff.getProfile();
+
+          // ซ่อนข้อความ Loading และแสดงผลข้อมูล
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("profile").style.display = "block";
+
+          document.getElementById("pictureUrl").src = profile.pictureUrl;
+          document.getElementById("displayName").innerText =
+            profile.displayName;
+          document.getElementById("userId").innerText =
+            "UID: " + profile.userId;
+
+          // คุณสามารถนำ profile.userId ส่งไปตรวจสอบกับฐานข้อมูลของคุณที่นี่ได้
+        } catch (err) {
+          console.error("Error getting profile: ", err);
+        }
+      }
+
+      // เรียกใช้งานฟังก์ชันเมื่อหน้าเว็บโหลดเสร็จ
+      window.onload = function () {
+        initializeLiff();
+      };
+    </script>
   </body>
 </html>
