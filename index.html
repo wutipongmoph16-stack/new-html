@@ -3,104 +3,188 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ยืนยันตัวตนบุคลากร</title>
+    <title>ระบบยืนยันตัวตนบุคลากร</title>
+
     <script
       charset="utf-8"
       src="https://static.line-scdn.net/liff/edge/2/sdk.js"
     ></script>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
     <style>
       body {
-        font-family: "Sarabun", sans-serif;
-        text-align: center;
-        padding: 20px;
-        background-color: #f4f7f6;
+        font-family: "Mali", cursive;
+        /* ธีมสีพื้นหลังแบบ Gradient สดใส (ฟ้า-ชมพูอ่อน) */
+        background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-      .container {
-        max-width: 400px;
-        margin: 0 auto;
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
-      img {
-        border-radius: 50%;
-        max-width: 100px;
-        margin-bottom: 15px;
-      }
-      select {
-        width: 100%;
-        padding: 10px;
-        margin: 20px 0;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        font-size: 16px;
-      }
-      button {
-        width: 100%;
-        padding: 12px;
-        background-color: #00b900;
-        color: white;
+
+      .card-custom {
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
         border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
       }
-      button:disabled {
-        background-color: #cccccc;
-        cursor: not-allowed;
+
+      .profile-img {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        border: 4px solid #fff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        object-fit: cover;
       }
-      #loading {
-        display: none;
-        color: #0056b3;
-        margin-top: 15px;
+
+      /* ปรับแต่ง Dropdown และ Button ให้ขอบมนดูทันสมัย */
+      .form-select,
+      .btn {
+        border-radius: 50rem;
       }
-      .footer {
-        margin-top: 30px;
-        font-size: 12px;
-        color: #666;
-        line-height: 1.5;
-        border-top: 1px solid #eee;
-        padding-top: 15px;
+
+      /* หน้าต่าง Loading แบบเต็มจอ */
+      #global-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s ease;
       }
-      .footer a {
-        color: #0056b3;
-        text-decoration: none;
+
+      .footer-text {
+        font-size: 0.8rem;
+        color: #6c757d;
       }
     </style>
   </head>
-  <body>
-    <div class="container" id="mainContainer">
-      <h2>ระบบยืนยันตัวตน</h2>
-      <img id="pictureUrl" src="" alt="Profile Picture" style="display: none" />
-      <h3 id="displayName">กำลังตรวจสอบข้อมูล...</h3>
-
-      <div id="contentSection" style="display: none; text-align: left">
-        <div id="formWrapper">
-          <label for="departmentSelect">1. เลือกกลุ่มงาน/แผนก</label>
-          <select id="departmentSelect" onchange="filterEmployees()">
-            <option value="">-- กำลังโหลดข้อมูล... --</option>
-          </select>
-
-          <label for="employeeSelect">2. เลือกชื่อ-นามสกุล</label>
-          <select id="employeeSelect" disabled>
-            <option value="">-- กรุณาเลือกแผนกก่อน --</option>
-          </select>
-
-          <button id="submitBtn" onclick="confirmIdentity()" disabled>
-            ยืนยันตัวตน
-          </button>
-          <p id="loading" style="text-align: center">กำลังบันทึกข้อมูล...</p>
-        </div>
+  <body class="p-3">
+    <div id="global-loader">
+      <div
+        class="spinner-grow text-primary mb-3"
+        style="width: 3rem; height: 3rem"
+        role="status"
+      >
+        <span class="visually-hidden">Loading...</span>
       </div>
+      <h4 class="text-primary fw-bold">กำลังเตรียมข้อมูล...</h4>
+      <p class="text-muted">กรุณารอสักครู่</p>
     </div>
 
-    <div class="footer">
-      <strong>สสจ.ลพบุรี</strong><br />
-      โทรศัพท์: 036-689689 ต่อ 133<br />
-      อีเมล: riskcom.lbmoph@gmail.com<br />
-      เว็บไซต์:
-      <a href="https://wwwlbo.moph.go.th" target="_blank">wwwlbo.moph.go.th</a>
+    <div class="container" style="max-width: 500px">
+      <div class="card card-custom p-4 p-md-5 text-center">
+        <div id="profileSection" class="mb-4 d-none">
+          <img
+            id="pictureUrl"
+            class="profile-img mb-3"
+            src=""
+            alt="Profile Picture"
+          />
+          <h4 id="displayName" class="fw-bold text-dark mb-0">สวัสดี!</h4>
+        </div>
+
+        <div id="successSection" class="d-none">
+          <div
+            class="alert alert-success rounded-4 text-start shadow-sm border-0"
+            role="alert"
+          >
+            <h5 class="alert-heading fw-bold text-success mb-3 text-center">
+              <i class="bi bi-check-circle-fill fs-2 d-block mb-2"></i>
+              คุณได้ยืนยันตัวตนแล้ว
+            </h5>
+            <hr />
+            <p class="mb-2">
+              <i class="bi bi-person-badge me-2"></i><strong>ชื่อ:</strong>
+              <span id="resName" class="text-dark"></span>
+            </p>
+            <p class="mb-0">
+              <i class="bi bi-building me-2"></i><strong>กลุ่มงาน:</strong>
+              <span id="resDept" class="text-dark"></span>
+            </p>
+          </div>
+          <button
+            class="btn btn-outline-success btn-lg w-100 mt-3"
+            onclick="liff.closeWindow()"
+          >
+            ปิดหน้าต่าง
+          </button>
+        </div>
+
+        <div id="formSection" class="text-start d-none">
+          <p class="text-center text-muted mb-4">
+            กรุณาระบุข้อมูลเพื่อผูกบัญชี LINE
+          </p>
+
+          <div class="mb-3">
+            <label
+              for="departmentSelect"
+              class="form-label fw-bold text-primary"
+              >1. เลือกกลุ่มงาน/แผนก</label
+            >
+            <select
+              id="departmentSelect"
+              class="form-select form-select-lg shadow-sm"
+              onchange="filterEmployees()"
+            >
+              <option value="">-- กำลังโหลดข้อมูล... --</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label for="employeeSelect" class="form-label fw-bold text-primary"
+              >2. เลือกชื่อ-นามสกุล</label
+            >
+            <select
+              id="employeeSelect"
+              class="form-select form-select-lg shadow-sm"
+              disabled
+            >
+              <option value="">-- กรุณาเลือกแผนกก่อน --</option>
+            </select>
+          </div>
+
+          <button
+            id="submitBtn"
+            class="btn btn-primary btn-lg w-100 fw-bold shadow"
+            onclick="confirmIdentity()"
+            disabled
+          >
+            <i class="bi bi-person-check-fill me-1"></i> ยืนยันตัวตน
+          </button>
+        </div>
+
+        <div class="mt-5 pt-3 border-top footer-text">
+          <strong class="text-dark">สำนักงานสาธารณสุขจังหวัดลพบุรี</strong
+          ><br />
+          องค์กรโปร่งใส ตรวจสอบได้ ไร้สินบน<br />
+          <div class="mt-2 text-muted" style="font-size: 0.75rem">
+            ©2026 ออกแบบโดย นายวุฒิพงษ์ เอี่ยมชื่น<br />นักวิชาการคอมพิวเตอร์ปฏิบัติการ
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -260,6 +344,19 @@
       function resetButton() {
         document.getElementById("submitBtn").style.display = "block";
         document.getElementById("loading").style.display = "none";
+      }
+      // --- Helper Functions ---
+      function hideGlobalLoader() {
+        const loader = document.getElementById("global-loader");
+        loader.style.opacity = "0";
+        setTimeout(() => (loader.style.display = "none"), 500);
+      }
+
+      function showGlobalLoader(text = "กำลังโหลดข้อมูล...") {
+        const loader = document.getElementById("global-loader");
+        loader.querySelector("h4").innerText = text;
+        loader.style.display = "flex";
+        setTimeout(() => (loader.style.opacity = "1"), 10);
       }
 
       window.onload = function () {
