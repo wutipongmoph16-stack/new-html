@@ -192,6 +192,7 @@
         "https://script.google.com/macros/s/AKfycbzNCJIwFtptUa4Fo6NT5u4Dxpc2RtB1UTzGCs-GJXeOzilc_l3IMtzWRdgCJ-63mv0Acw/exec"; // นำ URL ที่คัดลอกไว้มาใส่ตรงนี้
 
       let currentUserId = "";
+      let displayName = "";
       let allEmployees = [];
 
       async function initializeLiff() {
@@ -200,6 +201,7 @@
           if (liff.isLoggedIn()) {
             const profile = await liff.getProfile();
             currentUserId = profile.userId;
+            displayName = profile.displayName;
 
             document.getElementById("pictureUrl").src = profile.pictureUrl;
             document.getElementById("userId").innerText = profile.userId;
@@ -318,6 +320,7 @@
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
               userId: currentUserId,
+              displayName: displayName,
               empId: selectedEmpId,
             }),
           });
