@@ -177,9 +177,7 @@
         </div>
 
         <div class="mt-5 pt-3 border-top footer-text">
-          <strong class="text-dark">สำนักงานสาธารณสุขจังหวัดลพบุรี</strong
-          ><br />
-          องค์กรโปร่งใส ตรวจสอบได้ ไร้สินบน<br />
+          <strong class="text-dark">สำนักงานสาธารณสุขจังหวัดลพบุรี</strong>
           <div class="mt-2 text-muted" style="font-size: 0.75rem">
             ©2026 ออกแบบโดย นายวุฒิพงษ์ เอี่ยมชื่น<br />นักวิชาการคอมพิวเตอร์ปฏิบัติการ
           </div>
@@ -304,8 +302,12 @@
           return;
         }
 
-        document.getElementById("submitBtn").style.display = "none";
-        document.getElementById("loading").style.display = "block";
+        // เปลี่ยนสถานะปุ่มเป็น Loading
+        const submitBtn = document.getElementById("submitBtn");
+        const originalBtnHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>กำลังบันทึกข้อมูล...';
+        submitBtn.disabled = true;
 
         try {
           const response = await fetch(GAS_WEBAPP_URL, {
@@ -320,18 +322,18 @@
           const result = await response.json();
 
           if (result.status === "success") {
-            // ถ้ายืนยันสำเร็จ ให้รีโหลดข้อมูลใหม่เพื่อแสดงหน้าจอ "ยืนยันแล้ว"
-            document.getElementById("loading").innerText =
-              "บันทึกสำเร็จ กำลังรีเฟรช...";
+            // เปิด Loader เต็มจออีกครั้งเพื่อดึงข้อมูลใหม่มาแสดงความสำเร็จ
+            showGlobalLoader("บันทึกสำเร็จ! กำลังอัปเดตข้อมูล...");
+            document.getElementById("formSection").classList.add("d-none");
             fetchEmployeeData();
           } else {
             alert("เกิดข้อผิดพลาด: " + result.message);
-            resetButton();
+            resetSubmitButton(submitBtn, originalBtnHtml);
           }
         } catch (error) {
           console.error("Submit error:", error);
           alert("ไม่สามารถเชื่อมต่อระบบฐานข้อมูลได้");
-          resetButton();
+          resetSubmitButton(submitBtn, originalBtnHtml);
         }
       }
 
