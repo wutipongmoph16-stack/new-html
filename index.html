@@ -202,7 +202,7 @@
             currentUserId = profile.userId;
 
             document.getElementById("pictureUrl").src = profile.pictureUrl;
-            document.getElementById("userId").src = profile.currentUserId;
+            document.getElementById("userId").innerText = profile.currentUserId;
             document.getElementById("displayName").innerText =
               "สวัสดีคุณ " + profile.displayName;
             document
