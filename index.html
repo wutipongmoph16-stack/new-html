@@ -104,6 +104,7 @@
             alt="Profile Picture"
           />
           <h4 id="displayName" class="fw-bold text-dark mb-0">สวัสดี!</h4>
+          <h6 id="userId" class="fw-bold text-dark mb-0">userId</h6>
         </div>
 
         <div id="successSection" class="d-none">
@@ -201,6 +202,7 @@
             currentUserId = profile.userId;
 
             document.getElementById("pictureUrl").src = profile.pictureUrl;
+            document.getElementById("userId").src = profile.currentUserId;
             document.getElementById("displayName").innerText =
               "สวัสดีคุณ " + profile.displayName;
             document
@@ -233,6 +235,7 @@
             // แสดงหน้า Success
             document.getElementById("resName").innerText = result.name;
             document.getElementById("resDept").innerText = result.department;
+            document.getElementById("resUserId").innerText = result.userId;
             document
               .getElementById("successSection")
               .classList.remove("d-none");
