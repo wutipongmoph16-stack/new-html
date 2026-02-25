@@ -362,6 +362,11 @@
         setTimeout(() => (loader.style.opacity = "1"), 10);
       }
 
+      function resetSubmitButton(btn, originalHtml) {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+      }
+
       window.onload = function () {
         initializeLiff();
       };
