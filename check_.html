@@ -34,6 +34,8 @@
 
           const result = await response.json();
 
+          console.log(result);
+
           if (result.status === "success") {
             alert("บันทึกสำเร็จ! กำลังอัปเดตข้อมูล...");
             document.getElementById("formSection").classList.add("d-none");
