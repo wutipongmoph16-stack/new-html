@@ -8,6 +8,9 @@
   <body>
     <p>Check File</p>
 
+    <button onclick="test_insert()">Insert</button><br />
+    <button onclick="fetchEmployeeData()">fetch</button>
+
     <script>
       const GAS_WEBAPP_URL =
         "https://script.google.com/macros/s/AKfycbzNCJIwFtptUa4Fo6NT5u4Dxpc2RtB1UTzGCs-GJXeOzilc_l3IMtzWRdgCJ-63mv0Acw/exec"; // นำ URL ที่คัดลอกไว้มาใส่ตรงนี้
@@ -38,7 +41,21 @@
           alert("ไม่สามารถเชื่อมต่อระบบฐานข้อมูลได้");
         }
       }
-      test_insert();
+
+      async function fetchEmployeeData() {
+        try {
+          const response = await fetch(`${GAS_WEBAPP_URL}`);
+          const result = await response.json();
+
+          allEmployees = result.employees;
+
+          if (allEmployees.length > 0) {
+            console.log(allEmployees);
+          }
+        } catch (err) {
+          console.error("Fetch error", err);
+        }
+      }
     </script>
   </body>
 </html>
