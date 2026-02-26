@@ -7,5 +7,37 @@
   </head>
   <body>
     <p>Check File</p>
+
+    <script>
+      const GAS_WEBAPP_URL =
+        "https://script.google.com/macros/s/AKfycbzNCJIwFtptUa4Fo6NT5u4Dxpc2RtB1UTzGCs-GJXeOzilc_l3IMtzWRdgCJ-63mv0Acw/exec"; // นำ URL ที่คัดลอกไว้มาใส่ตรงนี้
+
+      async function test_insert() {
+        try {
+          const response = await fetch(GAS_WEBAPP_URL, {
+            method: "POST",
+            redirect: "follow",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              userId: "currentUserId",
+              displayName: "displayName",
+              empId: "690137",
+            }),
+          });
+
+          const result = await response.json();
+
+          if (result.status === "success") {
+            alert("บันทึกสำเร็จ! กำลังอัปเดตข้อมูล...");
+            document.getElementById("formSection").classList.add("d-none");
+          } else {
+            alert("เกิดข้อผิดพลาด: " + result.message);
+          }
+        } catch (error) {
+          console.error("Submit error:", error);
+          alert("ไม่สามารถเชื่อมต่อระบบฐานข้อมูลได้");
+        }
+      }
+    </script>
   </body>
 </html>
